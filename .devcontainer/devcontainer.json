@@ -1,0 +1,12 @@
+{
+    "image": "pico-sdk",
+    "customizations": {
+        "vscode": {
+        "extensions": [
+            "marus25.cortex-debug",
+            "ms-vscode.cmake-tools",
+            "ms-vscode.cpptools"
+            ]
+        }
+    }   
+}
