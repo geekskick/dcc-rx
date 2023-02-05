@@ -29,6 +29,18 @@ int main()
             ts.update();
             led.toggle();
             std::cout << "Pulse Width = " << ts.pulse_width() << "us\n";
+            // TODO: Take this pulse width and make it a 0, or a 1 and put into into some buffer
+            // If the number of bits in the DCC protocol is low (<64) I can just stick it in a longlong
+            // which might be nicer? In reality I think I'll have a class which does 
+            // DCCMessage::append_bit(DCCMessage::Bit) -> void;
+            // DCCMessage::reset() -> void;
+            // DCCMessage::is_invalid() -> bool;
+            // DCCMessage::is_complete() -> bool;
+            // DCCMessage::address() -> uint8_t
+            // DCCMessage::data() -> uint64_t;
+            // 
+            // then I can just chuck this out over serial and see packets on the screen
+            // maybe add an id to each packet (effectively a SEQ number to show the counter on the screen)
         }
         sleep_ms(500);
     }

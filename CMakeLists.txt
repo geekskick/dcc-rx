@@ -5,8 +5,14 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 
+#[[
+TODO: Make this an interface target
+TODO: Move all the code to header files
+TODO: Enable cross and native compilation based on the target
+TODO: Turn on catch
+]]
 add_library(core STATIC  
-   gpio/gpio_interface.hpp
+    gpio/gpio_interface.hpp
     gpio/gpio_decorator.hpp
     gpio/gpio_decorator.cc
     gpio/gpio.hpp
