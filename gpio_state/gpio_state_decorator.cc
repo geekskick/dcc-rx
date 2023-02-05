@@ -11,14 +11,14 @@ void GpioStateDecorator::update(const GpioStateInterface::Level &level)
     wrappee_.update(level);
 }
 
-EdgeDetectingGpio::EdgeDetectingGpio(GpioStateInterface &wrappee) : GpioStateDecorator{wrappee}, previous_level_{GpioStateInterface::Level::Unknown} {};
-void EdgeDetectingGpio::update(const GpioStateInterface::Level &new_level)
+EdgeDetectingGpioDecorator::EdgeDetectingGpioDecorator(GpioStateInterface &wrappee) : GpioStateDecorator{wrappee}, previous_level_{GpioStateInterface::Level::Unknown} {};
+void EdgeDetectingGpioDecorator::update(const GpioStateInterface::Level &new_level)
 {
     previous_level_ = wrappee_.current_level();
     wrappee_.update(new_level);
 }
 
-EdgeDetectingGpio::Edge EdgeDetectingGpio::detect_edge() const
+EdgeDetectingGpioDecorator::Edge EdgeDetectingGpioDecorator::detect_edge() const
 {
     static int print = 0;
     const auto indicator_character = print++ & 0x01 == 0x01 ? "-" : "|";

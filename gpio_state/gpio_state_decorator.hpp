@@ -12,7 +12,7 @@ public:
     virtual void update(const GpioStateInterface::Level &level) override;
 };
 
-class EdgeDetectingGpio final : public GpioStateDecorator
+class EdgeDetectingGpioDecorator final : public GpioStateDecorator
 {
 private:
     GpioStateInterface::Level previous_level_;
@@ -24,7 +24,7 @@ public:
         Falling,
         None
     };
-    EdgeDetectingGpio(GpioStateInterface &wrappee);
+    EdgeDetectingGpioDecorator(GpioStateInterface &wrappee);
     void update(const GpioStateInterface::Level &new_level) override;
     Edge detect_edge() const;
 };

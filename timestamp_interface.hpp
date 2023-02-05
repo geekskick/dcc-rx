@@ -51,8 +51,8 @@ protected:
     TimestampDecorator(TimestampInterface &wrappee) : wrappee_{wrappee} {}
 };
 
-struct PulseWidthTimestamp final: public TimestampDecorator{
-    PulseWidthTimestamp(TimestampInterface& wrappee): TimestampDecorator{wrappee}{}
+struct PulseWidthTimestampDecorator final: public TimestampDecorator{
+    PulseWidthTimestampDecorator(TimestampInterface& wrappee): TimestampDecorator{wrappee}{}
     Microseconds pulse_width() const {
         const auto me = get();
         const auto highest = std::max(me, previous_timestamp_);
