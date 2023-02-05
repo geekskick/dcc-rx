@@ -24,6 +24,7 @@ int main()
     gpio_set_dir(LED_PIN, GPIO_OUT);
     gpio_set_dir(GPIO_READ, GPIO_IN);
     bool previous_pin_state = false;
+    bool led_state = false;
     absolute_time_t previous_rising_edge = get_absolute_time();
     printf("[booting] %d\n", to_ms_since_boot(previous_rising_edge));
 
@@ -48,12 +49,18 @@ int main()
                 }
 
                 const u_seconds_diff_t pulse_width = absolute_time_diff_us(previous_rising_edge, current_time);
+                if(pulse_width < 0){
+                    printf("There's some error and the current time is less than the previous time\n");
+                }
+
                 printf("Rising Edge Width us = %lldus\t(|%lld - %lld|)\n",
                        pulse_width,
                        to_us_since_boot(current_time),
                        to_us_since_boot(previous_rising_edge));
 
                 previous_rising_edge = current_time;
+                led_state = !led_state;
+                gpio_put(LED_PIN, led_state);
             }
         }
         previous_pin_state = current_pin_state;
