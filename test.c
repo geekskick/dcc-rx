@@ -4,21 +4,20 @@
 #include <stdio.h>
 
 const uint LED_PIN = 25;
+const uint GPIO_READ = 16; // Bottom right pin(21)
 int main()
 {
-    bi_decl(bi_program_description("This is a test binary."));
-    bi_decl(bi_1pin_with_name(LED_PIN, "On-board LED"));
-
     stdio_init_all();
 
     gpio_init(LED_PIN);
+    gpio_init(GPIO_READ);
+    gpio_set_pulls(GPIO_READ, false, true);
     gpio_set_dir(LED_PIN, GPIO_OUT);
+    gpio_set_dir(GPIO_READ, GPIO_IN);
     while (1)
     {
-
-        gpio_put(LED_PIN, 0);
-        sleep_ms(250);
-        gpio_put(LED_PIN, 1);
+        const bool pin_state = gpio_get(GPIO_READ);
+        gpio_put(LED_PIN, pin_state);
         puts("Hello World\n");
         sleep_ms(1000);
     }
