@@ -5,9 +5,8 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 
-add_executable(test
-    main.cc
-    gpio/gpio_interface.hpp
+add_library(core STATIC  
+   gpio/gpio_interface.hpp
     gpio/gpio_decorator.hpp
     gpio/gpio_decorator.cc
     gpio/gpio.hpp
@@ -19,9 +18,17 @@ add_executable(test
     gpio_state/gpio_state_decorator.cc
     timestamp_interface.hpp
 )
-set_target_properties(test PROPERTIES LANGUAGE CXX)
 
-pico_enable_stdio_usb(test 1)
-pico_enable_stdio_uart(test 1) 
-pico_add_extra_outputs(test) 
-target_link_libraries(test pico_stdlib)
+target_include_directories(core PUBLIC .)
+add_executable(main
+    main.cc
+)
+set_target_properties(main core PROPERTIES LANGUAGE CXX)
+
+pico_enable_stdio_usb(main 1)
+pico_enable_stdio_uart(main 1) 
+pico_add_extra_outputs(main) 
+target_link_libraries(main core)
+target_link_libraries(core PUBLIC pico_stdlib)
+
+enable_testing()

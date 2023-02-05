@@ -6,13 +6,11 @@
 #include "timestamp_interface.hpp"
 #include <iostream>
 
-const GpioNumber LED_PIN = 25;
-const GpioNumber GPIO_READ = 16; // Bottom right pin(21)
-
-typedef int64_t u_seconds_diff_t;
-
 int main()
 {
+    constexpr GpioNumber LED_PIN = 25;
+    constexpr GpioNumber GPIO_READ = 16; // Bottom right pin(21)
+
     stdio_init_all();
 
     auto raw_led = OutputGpio{LED_PIN, GpioStateInterface::Level::High};
