@@ -3,7 +3,8 @@
 #include "gpio_state/gpio_state.hpp"
 #include "gpio_state/gpio_state_decorator.hpp"
 #include "pico/stdio.h" // stdio_init_all
-#include "timestamp_interface.hpp"
+#include "timestamp/timestamp.hpp"
+#include "timestamp/timestamp_decorator.hpp"
 #include <iostream>
 
 int main()
