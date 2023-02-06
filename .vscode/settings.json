@@ -1,6 +1,7 @@
 {
     "cmake.buildBeforeRun": true,
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "cmake.configureArgs": ["-DTEST=ON"],
     "files.associations": {
         "*.ipynb": "jupyter",
         "array": "cpp",
@@ -49,5 +50,6 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "testMate.cpp.test.executables": "{build,Build,BUILD,out,Out,OUT}/**/*{test,Test,TEST}*"
 }

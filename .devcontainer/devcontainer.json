@@ -6,7 +6,9 @@
             "marus25.cortex-debug",
             "ms-vscode.cmake-tools",
             "ms-vscode.cpptools",
-            "Gruntfuggly.todo-tree"
+            "Gruntfuggly.todo-tree",
+            "matepek.vscode-catch2-test-adapter",
+            "hbenl.vscode-test-explorer"
             ]
         }
     }   
