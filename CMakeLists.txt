@@ -9,30 +9,31 @@ if(CCACHE_PROGRAM)
 endif()
 option(TEST "Enable Testing" OFF)
 
-#[[
-TODO: Enable cross and native compilation based on the target
-TODO: Turn on catch
-]]
 add_library(core INTERFACE
     gpio/gpio_interface.hpp
     gpio/gpio_decorator.hpp
-    gpio/gpio.hpp
     gpio_state/gpio_state_interface.hpp
     gpio_state/gpio_state.hpp
     gpio_state/gpio_state_decorator.hpp
     timestamp/timestamp_interface.hpp
-    timestamp/timestamp.hpp
     timestamp/timestamp_decorator.hpp
 )
 
 set_target_properties(core PROPERTIES LANGUAGE CXX)
 target_include_directories(core INTERFACE .)
-target_link_libraries(core INTERFACE pico_stdlib)
 
 if(NOT ${TEST})
     message(STATUS "Cross Compiling by default, so importing pico stuff")
     include(pico_sdk_import.cmake)
     pico_sdk_init()
+
+    add_library(hal INTERFACE 
+        timestamp/timestamp.hpp
+        gpio/gpio.hpp
+    )
+    target_link_libraries(hal INTERFACE pico_stdlib core)
+    set_target_properties(hal PROPERTIES LANGUAGE CXX)
+    target_include_directories(hal INTERFACE .)
 
     add_executable(main
         main.cc
@@ -41,11 +42,9 @@ if(NOT ${TEST})
     pico_enable_stdio_usb(main 1)
     pico_enable_stdio_uart(main 1) 
     pico_add_extra_outputs(main) 
-    target_link_libraries(main core)
+    target_link_libraries(main core hal)
 else()
     message(STATUS "Compiling natively")
-    enable_testing()
-    include(FetchContent)
 
     include(FetchContent)
     FetchContent_Declare(
@@ -54,14 +53,16 @@ else()
     )
     FetchContent_MakeAvailable(googletest)
     add_executable(
-        hello_test
-        hello_test.cc
+        test
+        test.cc
     )
     target_link_libraries(
-        hello_test
+        test
         GTest::gtest_main
+        GTest::gmock
+        core
     )
 
     include(GoogleTest)
-    gtest_discover_tests(hello_test)
+    gtest_discover_tests(test)
 endif()
