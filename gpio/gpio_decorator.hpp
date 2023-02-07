@@ -4,9 +4,9 @@ class OutputGpioDecorator : public OutputGpioInterface
 {
 protected:
     OutputGpioInterface &wrappee_;
-    OutputGpioDecorator(OutputGpioInterface &wrappee);
 
 public:
+    OutputGpioDecorator(OutputGpioInterface &wrappee);
     void set(const GpioStateInterface::Level &state) override;
     const GpioStateInterface::Level &current_state() const override;
 };

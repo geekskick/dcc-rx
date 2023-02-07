@@ -1,8 +1,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "gpio/gpio_decorator.hpp"
 #include "gpio_state/gpio_state.hpp"
 #include "gpio_state/gpio_state_decorator.hpp"
+
 TEST(GpioStateTest, ConstructedWithUnknownState)
 {
     const auto uut = GpioState{};
@@ -109,4 +111,42 @@ TEST(EdgeDetectingStateDecoratorTest, DetectsNoEdgeWhenUnitialised)
     };
     test(GpioStateInterface::Level::Low);
     test(GpioStateInterface::Level::High);
+}
+
+struct OutputGpioMock final : public OutputGpioInterface
+{
+    MOCK_METHOD(void, set, (const GpioStateInterface::Level &), (override));
+    MOCK_METHOD(const GpioStateInterface::Level &, current_state, (), (const override));
+};
+
+TEST(GpioDecoratorTest, DelegatesSetToWrapee)
+{
+    auto wrappee = OutputGpioMock{};
+    auto uut = OutputGpioDecorator{wrappee};
+    EXPECT_CALL(wrappee, set(GpioStateInterface::Level::High)).Times(1);
+    uut.set(GpioStateInterface::Level::High);
+}
+TEST(GpioDecoratorTest, DelegatesGetToWrapee)
+{
+    auto wrappee = OutputGpioMock{};
+    auto uut = OutputGpioDecorator{wrappee};
+    const auto expected = GpioStateInterface::Level::High;
+    EXPECT_CALL(wrappee, current_state()).Times(1).WillOnce(testing::ReturnRef(expected));
+    const auto actual = uut.current_state();
+    ASSERT_EQ(actual, expected);
+}
+TEST(TogglingGpioDecoratorTest, TogglesHighToLow){
+    auto wrappee = OutputGpioMock{};
+    auto uut = TogglingOutputGpioDecorator{wrappee};
+    EXPECT_CALL(wrappee, current_state()).Times(1).WillOnce(testing::ReturnRefOfCopy(GpioStateInterface::Level::High));
+    EXPECT_CALL(wrappee, set(GpioStateInterface::Level::Low)).Times(1);
+    uut.toggle();
+}
+TEST(TogglingGpioDecoratorTest, TogglesLowToHigh)
+{
+    auto wrappee = OutputGpioMock{};
+    auto uut = TogglingOutputGpioDecorator{wrappee};
+    EXPECT_CALL(wrappee, current_state()).Times(1).WillOnce(testing::ReturnRefOfCopy(GpioStateInterface::Level::Low));
+    EXPECT_CALL(wrappee, set(GpioStateInterface::Level::High)).Times(1);
+    uut.toggle();
 }
