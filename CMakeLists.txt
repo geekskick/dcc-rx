@@ -17,6 +17,10 @@ add_library(core INTERFACE
     gpio_state/gpio_state_decorator.hpp
     timestamp/timestamp_interface.hpp
     timestamp/timestamp_decorator.hpp
+    timestamp/microseconds.hpp
+    bits/bit_tolerance.hpp
+    bits/bit_factory.hpp
+    bits/bit_buffer.hpp
 )
 
 set_target_properties(core PROPERTIES LANGUAGE CXX)

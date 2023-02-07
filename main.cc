@@ -6,6 +6,8 @@
 #include "timestamp/pico_timestamp.hpp"
 #include "timestamp/timestamp_decorator.hpp"
 #include <iostream>
+#include "bits/bit_factory.hpp"
+#include "bits/bit_tolerance.hpp"
 
 int main()
 {
@@ -22,6 +24,24 @@ int main()
     auto ts_raw = Timestamp{};
     auto ts = PulseWidthTimestampDecorator{ts_raw};
 
+    // A 1 bit is two halves. The first half tols are
+    // 55us - 61us
+    // And the second half is
+    // 53us - 64us
+    // We are simplifying things massively and using the time between edges of the same type
+    // so we combine them
+    const auto one_tolerances = BitTolerance{Microseconds{108}, Microseconds{125}};
+
+    // A 0 bit is two halves. The first half tols are
+    // 95us - 9900us
+    // And the second half is
+    // 90us - 10000
+    // We are simplifying things massively and using the time between edges of the same type
+    // so we combine them
+    const auto zero_tolerances = BitTolerance{Microseconds{185}, Microseconds{19900}};
+
+    const auto bit_factory = BitFactory{zero_tolerances, one_tolerances};
+
     while (1)
     {
         pin_state.update(pin.get());
@@ -29,7 +49,9 @@ int main()
         {
             ts.update();
             led.toggle();
-            std::cout << "Pulse Width = " << ts.pulse_width() << "us\n";
+            const auto pw = ts.pulse_width()
+            std::cout << "Pulse Width = " << pw << "us\n";
+            const auto bit = bit_factory.create(pw); 
             // TODO: Take this pulse width and make it a 0, or a 1 and put into into some buffer
             // If the number of bits in the DCC protocol is low (<64) I can just stick it in a longlong
             // which might be nicer? In reality I think I'll have a class which does 

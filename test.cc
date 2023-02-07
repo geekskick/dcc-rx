@@ -5,6 +5,9 @@
 #include "gpio_state/gpio_state.hpp"
 #include "gpio_state/gpio_state_decorator.hpp"
 #include "timestamp/timestamp_decorator.hpp"
+#include "bits/bit_tolerance.hpp"
+#include "bits/bit_factory.hpp"
+#include "bits/bit_buffer.hpp"
 
 TEST(GpioStateTest, ConstructedWithUnknownState)
 {
@@ -196,4 +199,48 @@ TEST(PulseWidthDetectionTest, PulseWidthIsCorrectAndPositive){
     uut.update();
     const auto actual = uut.pulse_width();
     ASSERT_EQ(actual, Microseconds{1});
+}
+
+TEST(BitToleranceTest, InRange){
+    const auto uut = BitTolerance{Microseconds{1}, Microseconds{3}};
+
+    ASSERT_FALSE(uut.in_range(0));
+    ASSERT_TRUE(uut.in_range(1));
+    ASSERT_TRUE(uut.in_range(2));
+    ASSERT_TRUE(uut.in_range(3));
+    ASSERT_FALSE(uut.in_range(4));
+}
+TEST(BitFactoryTest, ReturnsNullOptWhenNotInTolerances){
+    const auto zero_tolerances = BitTolerance{Microseconds{1}, Microseconds{3}};
+    const auto one_tolerances = BitTolerance{Microseconds{5}, Microseconds{7}};
+    const auto uut = BitFactory{zero_tolerances, one_tolerances};
+    const auto result = uut.create(Microseconds{4}); // OOL;
+    ASSERT_FALSE(result.has_value());
+}
+
+TEST(BitFactoryTest, ReturnsZero)
+{
+    const auto zero_tolerances = BitTolerance{Microseconds{1}, Microseconds{3}};
+    const auto one_tolerances = BitTolerance{Microseconds{5}, Microseconds{7}};
+    const auto uut = BitFactory{zero_tolerances, one_tolerances};
+    const auto result = uut.create(Microseconds{6}); 
+    ASSERT_TRUE(result.has_value());
+    ASSERT_EQ(result.value(), 0);
+}
+
+
+TEST(BitFactoryTest, ReturnsOne)
+{
+    const auto zero_tolerances = BitTolerance{Microseconds{1}, Microseconds{3}};
+    const auto one_tolerances = BitTolerance{Microseconds{5}, Microseconds{7}};
+    const auto uut = BitFactory{zero_tolerances, one_tolerances};
+    const auto result = uut.create(Microseconds{1}); 
+    ASSERT_TRUE(result.has_value());
+    ASSERT_EQ(result.value(), 1);
+}
+
+TEST(BitBufferTest, InitialisedToZero){
+    const auto uut = BitBuffer<2>{};
+    ASSERT_EQ(uut.data.at(0), 0);
+    ASSERT_EQ(uut.data.at(1), 0);
 }
