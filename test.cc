@@ -1,13 +1,13 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "bits/bit_buffer.hpp"
+#include "bits/bit_factory.hpp"
+#include "bits/bit_tolerance.hpp"
 #include "gpio/gpio_decorator.hpp"
 #include "gpio_state/gpio_state.hpp"
 #include "gpio_state/gpio_state_decorator.hpp"
 #include "timestamp/timestamp_decorator.hpp"
-#include "bits/bit_tolerance.hpp"
-#include "bits/bit_factory.hpp"
-#include "bits/bit_buffer.hpp"
 
 TEST(GpioStateTest, ConstructedWithUnknownState)
 {
@@ -139,7 +139,8 @@ TEST(GpioDecoratorTest, DelegatesGetToWrapee)
     const auto actual = uut.current_state();
     ASSERT_EQ(actual, expected);
 }
-TEST(TogglingGpioDecoratorTest, TogglesHighToLow){
+TEST(TogglingGpioDecoratorTest, TogglesHighToLow)
+{
     auto wrappee = OutputGpioMock{};
     auto uut = TogglingOutputGpioDecorator{wrappee};
     EXPECT_CALL(wrappee, current_state()).Times(1).WillOnce(testing::ReturnRefOfCopy(GpioStateInterface::Level::High));
@@ -155,13 +156,15 @@ TEST(TogglingGpioDecoratorTest, TogglesLowToHigh)
     uut.toggle();
 }
 
-struct MockTimestamp : public TimestampInterface{
-   MOCK_METHOD(const Microseconds&, get, (), (const override));
-   MOCK_METHOD(void, update, (), (override));
-   MOCK_METHOD(void, update, (const Microseconds&), (override));
+struct MockTimestamp : public TimestampInterface
+{
+    MOCK_METHOD(const Microseconds &, get, (), (const override));
+    MOCK_METHOD(void, update, (), (override));
+    MOCK_METHOD(void, update, (const Microseconds &), (override));
 };
 
-TEST(PulseWidthDetectionTest, CanUpdateWithValue){
+TEST(PulseWidthDetectionTest, CanUpdateWithValue)
+{
     auto wrappee = MockTimestamp{};
     auto uut = PulseWidthTimestampDecorator{wrappee};
     const auto stamp = Microseconds{100};
@@ -177,10 +180,10 @@ TEST(PulseWidthDetectionTest, CanUpdate)
     EXPECT_CALL(wrappee, get()).Times(1).WillOnce(testing::ReturnRef(stamp));
     EXPECT_CALL(wrappee, update()).Times(1);
     uut.update();
-
 }
 
-TEST(PulseWidthDetectionTest, PulseWidthIsCorrect){
+TEST(PulseWidthDetectionTest, PulseWidthIsCorrect)
+{
     auto wrappee = testing::NiceMock<MockTimestamp>{};
     auto uut = PulseWidthTimestampDecorator{wrappee};
     EXPECT_CALL(wrappee, get())
@@ -190,8 +193,9 @@ TEST(PulseWidthDetectionTest, PulseWidthIsCorrect){
     const auto actual = uut.pulse_width();
     ASSERT_EQ(actual, Microseconds{1});
 }
-TEST(PulseWidthDetectionTest, PulseWidthIsCorrectAndPositive){
-    auto wrappee = MockTimestamp{};
+TEST(PulseWidthDetectionTest, PulseWidthIsCorrectAndPositive)
+{
+    auto wrappee = testing::NiceMock<MockTimestamp>{};
     auto uut = PulseWidthTimestampDecorator{wrappee};
     EXPECT_CALL(wrappee, get())
         .WillOnce(testing::ReturnRefOfCopy(Microseconds{2}))
@@ -201,7 +205,8 @@ TEST(PulseWidthDetectionTest, PulseWidthIsCorrectAndPositive){
     ASSERT_EQ(actual, Microseconds{1});
 }
 
-TEST(BitToleranceTest, InRange){
+TEST(BitToleranceTest, InRange)
+{
     const auto uut = BitTolerance{Microseconds{1}, Microseconds{3}};
 
     ASSERT_FALSE(uut.in_range(0));
@@ -210,7 +215,8 @@ TEST(BitToleranceTest, InRange){
     ASSERT_TRUE(uut.in_range(3));
     ASSERT_FALSE(uut.in_range(4));
 }
-TEST(BitFactoryTest, ReturnsNullOptWhenNotInTolerances){
+TEST(BitFactoryTest, ReturnsNullOptWhenNotInTolerances)
+{
     const auto zero_tolerances = BitTolerance{Microseconds{1}, Microseconds{3}};
     const auto one_tolerances = BitTolerance{Microseconds{5}, Microseconds{7}};
     const auto uut = BitFactory{zero_tolerances, one_tolerances};
@@ -223,24 +229,95 @@ TEST(BitFactoryTest, ReturnsZero)
     const auto zero_tolerances = BitTolerance{Microseconds{1}, Microseconds{3}};
     const auto one_tolerances = BitTolerance{Microseconds{5}, Microseconds{7}};
     const auto uut = BitFactory{zero_tolerances, one_tolerances};
-    const auto result = uut.create(Microseconds{6}); 
+    const auto result = uut.create(Microseconds{6});
     ASSERT_TRUE(result.has_value());
     ASSERT_EQ(result.value(), 0);
 }
-
 
 TEST(BitFactoryTest, ReturnsOne)
 {
     const auto zero_tolerances = BitTolerance{Microseconds{1}, Microseconds{3}};
     const auto one_tolerances = BitTolerance{Microseconds{5}, Microseconds{7}};
     const auto uut = BitFactory{zero_tolerances, one_tolerances};
-    const auto result = uut.create(Microseconds{1}); 
+    const auto result = uut.create(Microseconds{1});
     ASSERT_TRUE(result.has_value());
     ASSERT_EQ(result.value(), 1);
 }
 
-TEST(BitBufferTest, InitialisedToZero){
+TEST(BitBufferTest, InitialisedToZero)
+{
     const auto uut = BitBuffer<2>{};
-    ASSERT_EQ(uut.data.at(0), 0);
-    ASSERT_EQ(uut.data.at(1), 0);
+    ASSERT_EQ(uut.at(0), 0);
+    ASSERT_EQ(uut.at(1), 0);
+    ASSERT_EQ(uut.state(), BufferState::Empty);
+}
+
+TEST(BitBufferTest, PushesOnes)
+{
+    auto uut = BitBuffer<2>{};
+
+    const auto test = [&](const uint8_t left, const uint8_t right, const BufferState state = BufferState::Filling)
+    {
+        ASSERT_EQ(uut.at(0), left);
+        ASSERT_EQ(uut.at(1), right);
+        ASSERT_EQ(uut.state(), state);
+    };
+    uut.push(1);
+    test(0x80, 0);
+    uut.push(1);
+    test(0xC0, 0);
+    uut.push(1);
+    test(0xE0, 0);
+    uut.push(1);
+    test(0xF0, 0);
+    uut.push(1);
+    test(0xF8, 0);
+    uut.push(1);
+    test(0xFC, 0);
+    uut.push(1);
+    test(0xFE, 0);
+    uut.push(1);
+    test(0xFF, 0);
+    uut.push(1);
+    test(0xFF, 0x80);
+    uut.push(1);
+    test(0xff, 0xC0);
+    uut.push(1);
+    test(0xff, 0xe0);
+    uut.push(1);
+    test(0xff, 0xf0);
+    uut.push(1);
+    test(0xFF, 0xf8);
+    uut.push(1);
+    test(0xff, 0xfC);
+    uut.push(1);
+    test(0xff, 0xfe);
+    uut.push(1);
+    test(0xff, 0xff, BufferState::Full);
+}
+
+TEST(BitBufferTest, PushesZeros)
+{
+    auto uut = BitBuffer<2>{};
+
+    const auto test = [&](const uint8_t left, const uint8_t right, const BufferState state = BufferState::Filling)
+    {
+        ASSERT_EQ(uut.at(0), left);
+        ASSERT_EQ(uut.at(1), right);
+        ASSERT_EQ(uut.state(), state);
+    };
+
+    for(int i = 0; i < 15; i++){
+        uut.push(0);
+        test(0, 0);
+    }
+
+    uut.push(0);
+    test(0, 0, BufferState::Full);
+    uut.push(1);
+    test(0, 0, BufferState::Full);
+    uut.push(1);
+    test(0, 0, BufferState::Full);
+    uut.push(1);
+    test(0, 0, BufferState::Full);
 }
