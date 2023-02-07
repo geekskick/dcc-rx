@@ -28,8 +28,8 @@ if(NOT ${TEST})
     pico_sdk_init()
 
     add_library(hal INTERFACE 
-        timestamp/timestamp.hpp
-        gpio/gpio.hpp
+        timestamp/pico_timestamp.hpp
+        gpio/pico_gpio.hpp
     )
     target_link_libraries(hal INTERFACE pico_stdlib core)
     set_target_properties(hal PROPERTIES LANGUAGE CXX)

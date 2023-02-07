@@ -1,9 +1,9 @@
-#include "gpio/gpio.hpp"
+#include "gpio/pico_gpio.hpp"
 #include "gpio/gpio_decorator.hpp"
 #include "gpio_state/gpio_state.hpp"
 #include "gpio_state/gpio_state_decorator.hpp"
 #include "pico/stdio.h" // stdio_init_all
-#include "timestamp/timestamp.hpp"
+#include "timestamp/pico_timestamp.hpp"
 #include "timestamp/timestamp_decorator.hpp"
 #include <iostream>
 
