@@ -10,5 +10,4 @@ station must send a minimum of 14 full preamble bits.
 */
 
 TEST(WaitingForPremableState, TransitionsOnCorrectPreamble){
-    auto uut =  
 }

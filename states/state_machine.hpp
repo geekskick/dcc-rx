@@ -1,28 +1,26 @@
 #pragma once
 #include "state_machine_interface.hpp"
-#include <variant>
+#include "state_interface.hpp"
 
-template<typename... States>
 class StateMachine : public StateMachineInterface
 {
-    static_assert((std::is_base_of_v<StateInterface, States> && ...), "Invalid template types.");
-    std::variant<States> current_state_{};
+    std::reference_wrapper<StateInterface> current_state_;
+    StateInterface& waiting_for_preamble_;
+    StateInterface& collecting_data_;
+    StateInterface& packet_received_;
 public:
 
-    StateMachine(StateInterface& initial_state):
-        current_state_{initial_state}{}
+    StateMachine(StateInterface& initial_state, StateInterface& collecting_data, StateInterface& packet_received):
+        current_state_{initial_state},
+        waiting_for_preamble_{initial_state},
+        collecting_data_{collecting_data},
+        packet_received_{packet_received}{}
 
 
-    void run(const Microseconds &pulse_width) override
+    void step(const Microseconds &pulse_width) override
     {
-        // Implicit dependency here on the variant to be a StateInterface
-        current_state_.run(pulse_width);
-    }
-
-    template<typename T>
-    std::enable_if_t<std::is_base_of_v<StateInterface, T>> 
-    transition_to(const T& next){
-        current_state = next;
+        current_state_.get().run(pulse_width);
+        current_state_.get().set_next_state(*this);
     }
 
     void reset_to_waiting_preamble() override
@@ -40,6 +38,6 @@ public:
     void transition_to_packet_received() override
     {
         std::cout << "Transitioning to packet_received\n";
-        current_state_ = packet_recieved_;
+        current_state_ = packet_received_;
     }
 };

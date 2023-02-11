@@ -16,7 +16,10 @@ class WaitingForPreambleState final : public StateInterface{
     int ones_received_{};
     int minimum_ones_{10};
     int maximum_ones_{12};
+    bool move_to_next_state_{false};
     BitFactory& bit_factory_;
+    
+
     bool start_of_packet(const uint8_t bit) const {
         return bit == 0;
     }
@@ -27,15 +30,22 @@ class WaitingForPreambleState final : public StateInterface{
 
     void process_valid_bit(const uint8_t bit) {
         if(start_of_packet(bit) && within_threshold()){
-            
+            move_to_next_state_ = true;
         }
     }
+
+    void set_next_state(StateMachineInterface& state_machine) override{
+        if(move_to_next_state_){
+            state_machine.transition_to_collecting_data();
+        }
+    }
+
 public:
     WaitingForPreambleState(BitFactory& bf):bit_factory_{bf}{}
     void run(const Microseconds& pulse_width) override{
         const auto bit = bit_factory_.create(pulse_width);
         if(bit){
-            process_valid_bit(bit);
+            process_valid_bit(bit.value());
         }
     }
 };
