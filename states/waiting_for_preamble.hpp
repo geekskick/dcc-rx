@@ -31,21 +31,40 @@ class WaitingForPreambleState final : public StateInterface{
     void process_valid_bit(const uint8_t bit) {
         if(start_of_packet(bit) && within_threshold()){
             move_to_next_state_ = true;
+            ones_received_ = 0;
         }
+        else if(start_of_packet(bit)){
+            ones_received_ = 0;
+            move_to_next_state_ = false;
+        }
+        else if(!start_of_packet(bit)){
+            ones_received_++;
+            move_to_next_state_ = false;
+        }
+
+        std::cout << "ones_recieved = " << ones_received_ << "\tmove_to_next = " << move_to_next_state_ << "\n";
     }
 
-    void set_next_state(StateMachineInterface& state_machine) override{
-        if(move_to_next_state_){
+
+public:
+    void set_next_state(StateMachineInterface &state_machine) override
+    {
+        if (move_to_next_state_)
+        {
             state_machine.transition_to_collecting_data();
         }
     }
 
-public:
     WaitingForPreambleState(BitFactory& bf):bit_factory_{bf}{}
     void run(const Microseconds& pulse_width) override{
         const auto bit = bit_factory_.create(pulse_width);
         if(bit){
+        std::cout << "Bit detected is " << static_cast<int>(bit.value_or(2)) << "\n";
             process_valid_bit(bit.value());
+        }
+        else{
+            std::cout << "Not a valid bit\n";
         }
     }
 };
+
