@@ -20,7 +20,9 @@ add_library(core INTERFACE
     timestamp/microseconds.hpp
     bits/bit_tolerance.hpp
     bits/bit_factory.hpp
-    bits/bit_buffer.hpp
+    states/state_interface.hpp
+    states/state_machine_interface.hpp
+    states/state_machine.hpp
 )
 
 set_target_properties(core PROPERTIES LANGUAGE CXX)
@@ -58,7 +60,11 @@ else()
     FetchContent_MakeAvailable(googletest)
     add_executable(
         test
-        test.cc
+        tests/timestamp_test.cc
+        tests/state_machine_test.cc
+        tests/gpio_test.cc
+        tests/bit_test.cc
+        tests/states_test.cc
     )
     target_link_libraries(
         test

@@ -42,6 +42,9 @@ int main()
 
     const auto bit_factory = BitFactory{zero_tolerances, one_tolerances};
 
+    constexpr auto bits_in_packet = 33;
+    auto buffer = BitBuffer<bits_in_packet>{};
+
     while (1)
     {
         pin_state.update(pin.get());
@@ -52,6 +55,7 @@ int main()
             const auto pw = ts.pulse_width()
             std::cout << "Pulse Width = " << pw << "us\n";
             const auto bit = bit_factory.create(pw); 
+
             // TODO: Take this pulse width and make it a 0, or a 1 and put into into some buffer
             // If the number of bits in the DCC protocol is low (<64) I can just stick it in a longlong
             // which might be nicer? In reality I think I'll have a class which does 
