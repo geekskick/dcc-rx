@@ -8,14 +8,19 @@ class StateMachine : public StateMachineInterface
     StateInterface& waiting_for_preamble_;
     StateInterface& collecting_data_;
     StateInterface& packet_received_;
+    BufferInterface& buffer_;
 public:
 
-    StateMachine(StateInterface& initial_state, StateInterface& collecting_data, StateInterface& packet_received):
+    StateMachine(StateInterface& initial_state, StateInterface& collecting_data, StateInterface& packet_received, BufferInterface& buffer):
         current_state_{initial_state},
         waiting_for_preamble_{initial_state},
         collecting_data_{collecting_data},
-        packet_received_{packet_received}{}
+        packet_received_{packet_received},
+        buffer_{buffer}{}
 
+    const BufferInterface& get_buffer() const override{
+        return buffer_;
+    }
 
     void step(const Microseconds &pulse_width) override
     {
