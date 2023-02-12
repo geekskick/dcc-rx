@@ -1,6 +1,7 @@
 #pragma once
 #include "state_interface.hpp"
 #include "bits/bit_factory.hpp"
+#include <iostream>
 /*
 According to the standard:
     The preamble to a packet consists of a sequence of "1" bits. 
@@ -47,7 +48,7 @@ class WaitingForPreambleState final : public StateInterface{
 
 
 public:
-    void set_next_state(StateMachineInterface &state_machine) override
+    void visit(StateMachineInterface &state_machine) override
     {
         if (move_to_next_state_)
         {

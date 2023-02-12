@@ -1,18 +1,22 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "states/state_machine.hpp"
 #include "bits/buffer_interface.hpp"
+#include "states/state_machine.hpp"
 
 struct MockState : public StateInterface
 {
     MOCK_METHOD(void, run, (const Microseconds &), (override));
-    MOCK_METHOD(void, set_next_state, (StateMachineInterface&), (override));
+    MOCK_METHOD(void, visit, (StateMachineInterface &), (override));
 };
 
-struct MockBuffer: public BufferInterface{
+struct MockBuffer : public BufferInterface
+{
+    MOCK_METHOD(BufferInterface::BufferType &, data, (), (override));
+    MOCK_METHOD(void, reset, (), (override));
     MOCK_METHOD(void, push, (uint8_t), (override));
-    MOCK_METHOD(const BufferInterface::BufferType&, data, (), (const, override));
+    MOCK_METHOD(void, start_count, (), (override));
+    MOCK_METHOD(size_t, get_count_of_pushed_bits, (), (const, override));
 };
 
 TEST(StateMachineTest, HasCorrectInitialState)
@@ -67,12 +71,15 @@ TEST(StateMachineTest, TranitionsBackToWaitingState)
     uut.step(Microseconds(2));
 }
 
-TEST(StateMachineTest, ProvidesBuffer){
+TEST(StateMachineTest, ProvidesBuffer)
+{
     auto s = testing::StrictMock<MockState>{};
+    auto buffer = BufferInterface::BufferType{};
     auto b = testing::StrictMock<MockBuffer>{};
     auto uut = StateMachine{s, s, s, b};
-    const auto& actual = uut.get_buffer();
-    ASSERT_EQ(&actual, &b);
+    EXPECT_CALL(b, data()).Times(1).WillOnce(testing::ReturnRef(buffer));
+    const auto &actual = uut.get_buffer();
+    ASSERT_EQ(&actual, &buffer);
 }
 /*
 TEST(StateMachineTest, Visits){

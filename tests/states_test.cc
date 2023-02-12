@@ -15,7 +15,12 @@ struct MockStateMachine : public StateMachineInterface
     MOCK_METHOD(void, transition_to_collecting_data, (), (override));
     MOCK_METHOD(void, transition_to_packet_received, (), (override));
     MOCK_METHOD(void, step, (const Microseconds &), (override));
-    MOCK_METHOD(const BufferInterface &, get_buffer, (), (const, override));
+
+    MOCK_METHOD(void, reset_buffer, (), (override));
+    MOCK_METHOD(void, push_buffer, (uint8_t), (override));
+    MOCK_METHOD(void, start_count, (), (override));
+    MOCK_METHOD(size_t, get_count_of_pushed_bits, (), (const, override));
+    MOCK_METHOD(BufferInterface::BufferType&, get_buffer, (), (override));
 };
 
 TEST(WaitingForPremableState, TransitionsOnCorrectPreambleAtMinimumLimit)
@@ -33,7 +38,7 @@ TEST(WaitingForPremableState, TransitionsOnCorrectPreambleAtMinimumLimit)
     uut.run(Microseconds{1});
     auto sm = testing::StrictMock<MockStateMachine>{};
     EXPECT_CALL(sm, transition_to_collecting_data()).Times(1);
-    uut.set_next_state(sm);
+    uut.visit(sm);
 }
 TEST(WaitingForPremableState, TransitionsOnCorrectPreambleAtMaximumLimit)
 {
@@ -50,7 +55,7 @@ TEST(WaitingForPremableState, TransitionsOnCorrectPreambleAtMaximumLimit)
     uut.run(Microseconds{1});
     auto sm = testing::StrictMock<MockStateMachine>{};
     EXPECT_CALL(sm, transition_to_collecting_data()).Times(1);
-    uut.set_next_state(sm);
+    uut.visit(sm);
 }
 TEST(WaitingForPremableState, DoesntTransitionsOnCorrectPreambleAboveMaximumLimit)
 {
@@ -66,7 +71,7 @@ TEST(WaitingForPremableState, DoesntTransitionsOnCorrectPreambleAboveMaximumLimi
     // start of packet is the end of the preamble
     uut.run(Microseconds{1});
     auto sm = testing::StrictMock<MockStateMachine>{};
-    uut.set_next_state(sm);
+    uut.visit(sm);
 }
 TEST(WaitingForPremableState, DoesntTransitionsOnCorrectPreambleBelowMinimumLimit)
 {
@@ -82,5 +87,5 @@ TEST(WaitingForPremableState, DoesntTransitionsOnCorrectPreambleBelowMinimumLimi
     // start of packet is the end of the preamble
     uut.run(Microseconds{1});
     auto sm = testing::StrictMock<MockStateMachine>{};
-    uut.set_next_state(sm);
+    uut.visit(sm);
 }
