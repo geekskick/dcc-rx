@@ -23,6 +23,9 @@ add_library(core INTERFACE
     states/state_interface.hpp
     states/state_machine_interface.hpp
     states/state_machine.hpp
+    states/waiting_for_preamble.hpp
+    states/collecting_data.hpp
+    states/template_state.hpp
 )
 
 set_target_properties(core PROPERTIES LANGUAGE CXX)

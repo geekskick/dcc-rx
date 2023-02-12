@@ -51,5 +51,6 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp"
     },
-    "testMate.cpp.test.executables": "{build,Build,BUILD,out,Out,OUT}/**/*{test,Test,TEST}*"
+    "testMate.cpp.test.executables": "{build,Build,BUILD,out,Out,OUT}/**/*{test,Test,TEST}*",
+    "editor.formatOnSave": true
 }

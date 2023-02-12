@@ -42,8 +42,7 @@ public:
     }
     void step(const Microseconds &pulse_width) override
     {
-        current_state_.get().run(pulse_width);
-        current_state_.get().visit(*this);
+        current_state_.get().run(pulse_width, *this);
     }
 
     void reset_to_waiting_preamble() override

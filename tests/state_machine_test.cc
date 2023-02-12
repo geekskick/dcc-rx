@@ -6,8 +6,7 @@
 
 struct MockState : public StateInterface
 {
-    MOCK_METHOD(void, run, (const Microseconds &), (override));
-    MOCK_METHOD(void, visit, (StateMachineInterface &), (override));
+    MOCK_METHOD(void, run, (const Microseconds &, StateMachineInterface &), (override));
 };
 
 struct MockBuffer : public BufferInterface
@@ -25,7 +24,7 @@ TEST(StateMachineTest, HasCorrectInitialState)
     auto initial = testing::NiceMock<MockState>{};
     auto other = testing::StrictMock<MockState>{};
     auto uut = StateMachine{initial, other, other, buffer};
-    EXPECT_CALL(initial, run(Microseconds{1})).Times(1);
+    EXPECT_CALL(initial, run(Microseconds{1}, testing::Ref(uut))).Times(1);
     uut.step(Microseconds{1});
 }
 
@@ -37,7 +36,7 @@ TEST(StateMachineTest, TranitionsToCollectingState)
     auto pkt_rxd = testing::StrictMock<MockState>{};
     auto uut = StateMachine{initial, collecting_data, pkt_rxd, buffer};
     uut.transition_to_collecting_data();
-    EXPECT_CALL(collecting_data, run(Microseconds{1})).Times(1);
+    EXPECT_CALL(collecting_data, run(Microseconds{1}, testing::Ref(uut))).Times(1);
     uut.step(Microseconds{1});
 }
 TEST(StateMachineTest, TranitionsToPacketReceviedState)
@@ -48,7 +47,7 @@ TEST(StateMachineTest, TranitionsToPacketReceviedState)
     auto packet_recieved = testing::NiceMock<MockState>{};
     auto uut = StateMachine{initial, collecting_data, packet_recieved, buffer};
     uut.transition_to_packet_received();
-    EXPECT_CALL(packet_recieved, run(Microseconds{1})).Times(1);
+    EXPECT_CALL(packet_recieved, run(Microseconds{1}, testing::Ref(uut))).Times(1);
     uut.step(Microseconds{1});
 }
 
@@ -63,8 +62,8 @@ TEST(StateMachineTest, TranitionsBackToWaitingState)
     uut.transition_to_packet_received();
     {
         testing::InSequence s;
-        EXPECT_CALL(packet_recieved, run(Microseconds{1})).Times(1);
-        EXPECT_CALL(initial, run(Microseconds{2})).Times(1);
+        EXPECT_CALL(packet_recieved, run(Microseconds{1}, testing::Ref(uut))).Times(1);
+        EXPECT_CALL(initial, run(Microseconds{2}, testing::Ref(uut))).Times(1);
     }
     uut.step(Microseconds{1});
     uut.reset_to_waiting_preamble();
