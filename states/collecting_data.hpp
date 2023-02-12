@@ -3,17 +3,20 @@
 #include "template_state.hpp"
 #include <iostream>
 
+template <typename Callable>
 class CollectingDataState final : public TemplateState
 {
     size_t bits_received_{};
+    Callable cb_;
 
     void template_run(const uint8_t bit, StateMachineInterface &sm) override
     {
         std::cout << "bit = " << bit << "\tbits received before this = " << bits_received_ << "\n";
         if (at_word_boundary() && packet_end(bit))
         {
-            std::cout << "\tPacket rxd\n";
-            sm.transition_to_packet_received();
+            cb_(sm.get_buffer());
+            sm.reset_buffer();
+            sm.reset_to_waiting_preamble();
         }
         else if (at_word_boundary() && !packet_end(bit))
         {
@@ -49,5 +52,5 @@ public:
     static constexpr uint8_t DATA_START_BIT{1};
     static constexpr uint8_t PACKET_END_BIT{0};
 
-    CollectingDataState(BitFactory &bf) : TemplateState{bf} {}
+    CollectingDataState(BitFactory &bf, Callable cb) : TemplateState{bf}, cb_{std::move(cb)} {}
 };
