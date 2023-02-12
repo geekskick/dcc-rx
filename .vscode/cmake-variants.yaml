@@ -1,0 +1,25 @@
+buildType:
+  default: debug
+  choices:
+    debug:
+      short: Debug
+      long: Emit debug information
+      buildType: Debug
+    release:
+      short: Release
+      long: Optimize generated code
+      buildType: Release
+
+architecture:
+  default: native
+  choices:
+    native:
+      short: native
+      long: Build for the native compiler and thus build tests
+      settings:
+        ARCH: native   
+    pico:
+      short: pico
+      long: Build for the pico
+      settings:
+        ARCH: pico         

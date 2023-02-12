@@ -9,7 +9,6 @@ if(CCACHE_PROGRAM)
 endif()
 
 add_link_options(-fuse-ld=mold)
-option(TEST "Enable Testing" OFF)
 
 add_library(core INTERFACE
     gpio/gpio_interface.hpp
@@ -35,7 +34,7 @@ add_library(core INTERFACE
 set_target_properties(core PROPERTIES LANGUAGE CXX)
 target_include_directories(core INTERFACE .)
 
-if(NOT ${TEST})
+if("${ARCH}" STREQUAL "pico")
     message(STATUS "Cross Compiling by default, so importing pico stuff")
     include(pico_sdk_import.cmake)
     pico_sdk_init()
@@ -56,7 +55,7 @@ if(NOT ${TEST})
     pico_enable_stdio_uart(main 1) 
     pico_add_extra_outputs(main) 
     target_link_libraries(main core hal)
-else()
+elseif("${ARCH}" STREQUAL "native")
     message(STATUS "Compiling natively")
 
     include(FetchContent)
@@ -85,4 +84,6 @@ else()
 
     include(GoogleTest)
     gtest_discover_tests(test)
+else()
+    message(FATAL_ERROR "Unrecognised Arch ${ARCH}")
 endif()

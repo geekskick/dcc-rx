@@ -1,13 +1,17 @@
-#include "gpio/pico_gpio.hpp"
+#include "bits/bit_buffer.hpp"
+#include "bits/bit_factory.hpp"
+#include "bits/bit_tolerance.hpp"
 #include "gpio/gpio_decorator.hpp"
+#include "gpio/pico_gpio.hpp"
 #include "gpio_state/gpio_state.hpp"
 #include "gpio_state/gpio_state_decorator.hpp"
 #include "pico/stdio.h" // stdio_init_all
+#include "states/collecting_data.hpp"
+#include "states/state_machine.hpp"
+#include "states/waiting_for_preamble.hpp"
 #include "timestamp/pico_timestamp.hpp"
 #include "timestamp/timestamp_decorator.hpp"
 #include <iostream>
-#include "bits/bit_factory.hpp"
-#include "bits/bit_tolerance.hpp"
 
 int main()
 {
@@ -39,11 +43,23 @@ int main()
     // We are simplifying things massively and using the time between edges of the same type
     // so we combine them
     const auto zero_tolerances = BitTolerance{Microseconds{185}, Microseconds{19900}};
-
     const auto bit_factory = BitFactory{zero_tolerances, one_tolerances};
 
     constexpr auto bits_in_packet = 33;
-    auto buffer = BitBuffer<bits_in_packet>{};
+    auto buffer = BitBuffer{};
+
+    auto preamble_state = WaitingForPreambleState{bit_factory};
+    auto collecting_state = CollectingDataState{bit_factory, [int i = 0](BitBuffer::BufferType &buffer) mutable
+                                                {
+                                                    std::cout << i << "\t"
+                                                              << "Packet: ";
+                                                    for (const auto &b : buffer)
+                                                    {
+                                                        std::cout << std::hex << std::setfill('0') << std::setw(2) << b << " ";
+                                                    }
+                                                    std::cout << "\n";
+                                                }};
+    auto state_machine = StateMachine{preamble_state, collecting_state, buffer};
 
     while (1)
     {
@@ -52,22 +68,8 @@ int main()
         {
             ts.update();
             led.toggle();
-            const auto pw = ts.pulse_width()
-            std::cout << "Pulse Width = " << pw << "us\n";
-            const auto bit = bit_factory.create(pw); 
-
-            // TODO: Take this pulse width and make it a 0, or a 1 and put into into some buffer
-            // If the number of bits in the DCC protocol is low (<64) I can just stick it in a longlong
-            // which might be nicer? In reality I think I'll have a class which does 
-            // DCCMessage::append_bit(DCCMessage::Bit) -> void;
-            // DCCMessage::reset() -> void;
-            // DCCMessage::is_invalid() -> bool;
-            // DCCMessage::is_complete() -> bool;
-            // DCCMessage::address() -> uint8_t
-            // DCCMessage::data() -> uint64_t;
-            // 
-            // then I can just chuck this out over serial and see packets on the screen
-            // maybe add an id to each packet (effectively a SEQ number to show the counter on the screen)
+            const auto pw = ts.pulse_width();
+            state_machine.step(pw);
         }
         sleep_ms(500);
     }
