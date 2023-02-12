@@ -76,14 +76,14 @@ TEST(WaitingForPremableState, ResetsCountWhenInvalidBitReceivedInValidWindow)
     uut.run(Microseconds{1}, sm);
 }
 
-TEST(WaitingForPremableState, TransitionsOnCorrectPreambleAtMaximumLimit)
+TEST(WaitingForPremableState, TransitionsOnCorrectPreambleWhenVeryLong)
 {
     // 1,2,3 are a 0,
     // 4,5,6 are a 1
     auto bf = BitFactory::Builder{}.with_zero_tolerance(BitTolerance{1, 3}).with_one_tolerance(BitTolerance{4, 6}).build();
     auto uut = WaitingForPreambleState{bf};
     auto sm = testing::StrictMock<MockStateMachine>{};
-    for (int i = 0; i < WaitingForPreambleState::MAXIMUM_ONES; ++i)
+    for (int i = 0; i < 24; ++i)
     {
         uut.run(Microseconds{5}, sm);
     }
@@ -92,20 +92,7 @@ TEST(WaitingForPremableState, TransitionsOnCorrectPreambleAtMaximumLimit)
     EXPECT_CALL(sm, reset_buffer()).Times(1);
     uut.run(Microseconds{1}, sm);
 }
-TEST(WaitingForPremableState, DoesntTransitionsOnCorrectPreambleAboveMaximumLimit)
-{
-    // 1,2,3 are a 0,
-    // 4,5,6 are a 1
-    auto bf = BitFactory::Builder{}.with_zero_tolerance(BitTolerance{1, 3}).with_one_tolerance(BitTolerance{4, 6}).build();
-    auto uut = WaitingForPreambleState{bf};
-    auto sm = testing::StrictMock<MockStateMachine>{};
-    for (int i = 0; i < WaitingForPreambleState::MAXIMUM_ONES + 1; ++i)
-    {
-        uut.run(Microseconds{5}, sm);
-    }
-    // start of packet is the end of the preamble
-    uut.run(Microseconds{1}, sm);
-}
+
 TEST(WaitingForPremableState, DoesntTransitionsOnCorrectPreambleBelowMinimumLimit)
 {
     // 1,2,3 are a 0,

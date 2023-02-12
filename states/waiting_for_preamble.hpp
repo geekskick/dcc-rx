@@ -24,7 +24,7 @@ class WaitingForPreambleState final : public TemplateState
 
     bool within_threshold() const
     {
-        return ones_received_ >= MINIMUM_ONES && ones_received_ <= MAXIMUM_ONES;
+        return ones_received_ >= MINIMUM_ONES;
     }
 
     void process_valid_bit(const uint8_t bit)
@@ -65,7 +65,6 @@ class WaitingForPreambleState final : public TemplateState
 
 public:
     static constexpr size_t MINIMUM_ONES{10};
-    static constexpr size_t MAXIMUM_ONES{12};
 
     WaitingForPreambleState(BitFactory &bf) : TemplateState{bf} {}
 };
