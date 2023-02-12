@@ -15,18 +15,15 @@ packet start bit (0).
 */
 class WaitingForPreambleState final : public StateInterface{
     int ones_received_{};
-    int minimum_ones_{10};
-    int maximum_ones_{12};
     bool move_to_next_state_{false};
     BitFactory& bit_factory_;
     
-
     bool start_of_packet(const uint8_t bit) const {
         return bit == 0;
     }
 
     bool within_threshold() const {
-        return ones_received_ >= minimum_ones_ && ones_received_ <= maximum_ones_;
+        return ones_received_ >= MINIMUM_ONES && ones_received_ <= MAXIMUM_ONES;
     }
 
     void process_valid_bit(const uint8_t bit) {
@@ -42,17 +39,18 @@ class WaitingForPreambleState final : public StateInterface{
             ones_received_++;
             move_to_next_state_ = false;
         }
-
-        std::cout << "ones_recieved = " << ones_received_ << "\tmove_to_next = " << move_to_next_state_ << "\n";
     }
 
 
 public:
+    static constexpr size_t MINIMUM_ONES{10};
+    static constexpr size_t MAXIMUM_ONES{12};
     void visit(StateMachineInterface &state_machine) override
     {
         if (move_to_next_state_)
         {
             state_machine.transition_to_collecting_data();
+            state_machine.reset_buffer();
         }
     }
 
@@ -60,11 +58,10 @@ public:
     void run(const Microseconds& pulse_width) override{
         const auto bit = bit_factory_.create(pulse_width);
         if(bit){
-        std::cout << "Bit detected is " << static_cast<int>(bit.value_or(2)) << "\n";
             process_valid_bit(bit.value());
         }
         else{
-            std::cout << "Not a valid bit\n";
+            ones_received_ = 0;
         }
     }
 };
