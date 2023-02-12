@@ -19,4 +19,6 @@ public:
     static constexpr size_t BITS_IN_WORD{8};
     static constexpr uint8_t DATA_START_BIT{1};
     static constexpr uint8_t PACKET_END_BIT{0};
+
+    CollectingDataState(BitFactory &bf) : TemplateState{bf} {}
 };

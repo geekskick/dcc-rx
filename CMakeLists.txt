@@ -7,6 +7,8 @@ if(CCACHE_PROGRAM)
     message(STATUS "Using ccache")
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
 endif()
+
+add_link_options(-fuse-ld=mold)
 option(TEST "Enable Testing" OFF)
 
 add_library(core INTERFACE
@@ -67,7 +69,9 @@ else()
         tests/state_machine_test.cc
         tests/gpio_test.cc
         tests/bit_test.cc
-        tests/states_test.cc
+        tests/preamble_state_test.cc
+        tests/collecting_state_test.cc
+        tests/mock_state_machine.hpp
     )
     target_link_libraries(
         test
