@@ -22,6 +22,8 @@ add_library(core INTERFACE
     timestamp/microseconds.hpp
     bits/bit_tolerance.hpp
     bits/bit_factory.hpp
+    bits/buffer_interface.hpp
+    bits/bit_buffer.hpp
     states/state_interface.hpp
     states/state_machine_interface.hpp
     states/state_machine.hpp
@@ -72,6 +74,7 @@ else()
         tests/preamble_state_test.cc
         tests/collecting_state_test.cc
         tests/mock_state_machine.hpp
+        tests/bitbuffer_test.cc
     )
     target_link_libraries(
         test
