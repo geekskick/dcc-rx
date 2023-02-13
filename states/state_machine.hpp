@@ -1,6 +1,7 @@
 #pragma once
 #include "state_interface.hpp"
 #include "state_machine_interface.hpp"
+#include <functional>
 
 class StateMachine : public StateMachineInterface
 {
@@ -46,5 +47,4 @@ public:
         std::cout << "Transitioning to collecting_data\n";
         current_state_ = collecting_data_;
     }
-
 };

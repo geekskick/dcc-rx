@@ -1,14 +1,13 @@
 cmake_minimum_required(VERSION 3.13)
+
+if("${ARCH}" STREQUAL "pico")
+    include(pico_sdk_import.cmake)
+endif()
+
 project(test_project C CXX ASM)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
-find_program(CCACHE_PROGRAM ccache)
-if(CCACHE_PROGRAM)
-    message(STATUS "Using ccache")
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
-endif()
 
-add_link_options(-fuse-ld=mold)
 
 add_library(core INTERFACE
     gpio/gpio_interface.hpp
@@ -36,9 +35,8 @@ target_include_directories(core INTERFACE .)
 
 if("${ARCH}" STREQUAL "pico")
     message(STATUS "Cross Compiling by default, so importing pico stuff")
-    include(pico_sdk_import.cmake)
-    pico_sdk_init()
 
+    pico_sdk_init()
     add_library(hal INTERFACE 
         timestamp/pico_timestamp.hpp
         gpio/pico_gpio.hpp
@@ -55,8 +53,18 @@ if("${ARCH}" STREQUAL "pico")
     pico_enable_stdio_uart(main 1) 
     pico_add_extra_outputs(main) 
     target_link_libraries(main core hal)
+
+
 elseif("${ARCH}" STREQUAL "native")
     message(STATUS "Compiling natively")
+
+    add_link_options(-fuse-ld=mold)
+
+    find_program(CCACHE_PROGRAM ccache)
+    if(CCACHE_PROGRAM)
+        message(STATUS "Using ccache")
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+    endif()
 
     include(FetchContent)
     FetchContent_Declare(

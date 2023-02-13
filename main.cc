@@ -11,8 +11,8 @@
 #include "states/waiting_for_preamble.hpp"
 #include "timestamp/pico_timestamp.hpp"
 #include "timestamp/timestamp_decorator.hpp"
+#include <iomanip>
 #include <iostream>
-
 int main()
 {
     constexpr GpioNumber LED_PIN = 25;
@@ -43,22 +43,24 @@ int main()
     // We are simplifying things massively and using the time between edges of the same type
     // so we combine them
     const auto zero_tolerances = BitTolerance{Microseconds{185}, Microseconds{19900}};
-    const auto bit_factory = BitFactory{zero_tolerances, one_tolerances};
+    const auto bit_factory = BitFactory::Builder{}.with_zero_tolerance(zero_tolerances).with_one_tolerance(one_tolerances).build();
 
     constexpr auto bits_in_packet = 33;
     auto buffer = BitBuffer{};
 
     auto preamble_state = WaitingForPreambleState{bit_factory};
-    auto collecting_state = CollectingDataState{bit_factory, [int i = 0](BitBuffer::BufferType &buffer) mutable
-                                                {
-                                                    std::cout << i << "\t"
-                                                              << "Packet: ";
-                                                    for (const auto &b : buffer)
-                                                    {
-                                                        std::cout << std::hex << std::setfill('0') << std::setw(2) << b << " ";
-                                                    }
-                                                    std::cout << "\n";
-                                                }};
+    auto packet_number = 0;
+    auto on_complete_handler = [&](BitBuffer::BufferType &buffer)
+    {
+        std::cout << packet_number++ << "\tPacket: ";
+        for (const auto &b : buffer)
+        {
+            std::cout << std::hex << std::setfill('0') << std::setw(2) << b << " ";
+        }
+        std::cout << "\n";
+    };
+    auto collecting_state = CollectingDataState<decltype(on_complete_handler)>{
+        bit_factory, on_complete_handler};
     auto state_machine = StateMachine{preamble_state, collecting_state, buffer};
 
     while (1)

@@ -66,5 +66,5 @@ class WaitingForPreambleState final : public TemplateState
 public:
     static constexpr size_t MINIMUM_ONES{10};
 
-    WaitingForPreambleState(BitFactory &bf) : TemplateState{bf} {}
+    WaitingForPreambleState(const BitFactory &bf) : TemplateState{bf} {}
 };

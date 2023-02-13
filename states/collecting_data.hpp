@@ -52,5 +52,5 @@ public:
     static constexpr uint8_t DATA_START_BIT{1};
     static constexpr uint8_t PACKET_END_BIT{0};
 
-    CollectingDataState(BitFactory &bf, Callable cb) : TemplateState{bf}, cb_{std::move(cb)} {}
+    CollectingDataState(const BitFactory &bf, Callable cb) : TemplateState{bf}, cb_{std::move(cb)} {}
 };

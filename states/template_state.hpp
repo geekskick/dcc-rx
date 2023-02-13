@@ -24,8 +24,8 @@ struct TemplateState : public StateInterface
 protected:
     virtual void reset_self() = 0;
     virtual void template_run(const uint8_t bit, StateMachineInterface &state_machine) = 0;
-    TemplateState(BitFactory &bf) : bit_factory_{bf} {}
+    TemplateState(const BitFactory &bf) : bit_factory_{bf} {}
 
 private:
-    BitFactory &bit_factory_;
+    const BitFactory &bit_factory_;
 };
