@@ -22,7 +22,7 @@ int main()
 
     auto raw_led = OutputGpio{LED_PIN, GpioStateInterface::Level::High};
     auto led = TogglingOutputGpioDecorator{raw_led};
-    auto pin = PullDownInputGpio{GPIO_READ};
+    auto pin = FloatingGpio{GPIO_READ};
     auto pin_state_raw = GpioState{};
     auto pin_state = EdgeDetectingGpioDecorator{pin_state_raw};
     auto ts_raw = Timestamp{};
@@ -50,14 +50,15 @@ int main()
 
     auto preamble_state = WaitingForPreambleState{bit_factory};
     auto packet_number = 0;
-    auto on_complete_handler = [&](BitBuffer::BufferType &buffer)
+    auto on_complete_handler = [&](const BufferInterface &buffer)
     {
-        std::cout << packet_number++ << "\tPacket: ";
-        for (const auto &b : buffer)
+        led.toggle();
+        printf("%d\t%d", packet_number++, to_us_since_boot(get_absolute_time()));
+        for (const auto &b : buffer.data())
         {
-            std::cout << std::hex << std::setfill('0') << std::setw(2) << b << " ";
+            printf("%02X ", b);
         }
-        std::cout << "\n";
+        printf("bit = %d, byte = %d\n", buffer.bit(), buffer.byte());
     };
     auto collecting_state = CollectingDataState<decltype(on_complete_handler)>{
         bit_factory, on_complete_handler};
@@ -69,10 +70,9 @@ int main()
         if (pin_state.detect_edge() == EdgeDetectingGpioDecorator::Edge::Rising)
         {
             ts.update();
-            led.toggle();
             const auto pw = ts.pulse_width();
+            // std::cout << "pw = " << pw << "\n";
             state_machine.step(pw);
         }
-        sleep_ms(500);
     }
 }

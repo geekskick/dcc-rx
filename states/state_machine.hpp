@@ -27,9 +27,9 @@ public:
         buffer_.push(bit);
     }
 
-    BufferInterface::BufferType &get_buffer() override
+    const BufferInterface &get_buffer() const override
     {
-        return buffer_.data();
+        return buffer_;
     }
     void step(const Microseconds &pulse_width) override
     {
@@ -38,13 +38,13 @@ public:
 
     void reset_to_waiting_preamble() override
     {
-        std::cout << "Transitioning to waiting_for_preamble\n";
+        // std::cout << "Transitioning to waiting_for_preamble\n";
         current_state_ = waiting_for_preamble_;
     }
 
     void transition_to_collecting_data() override
     {
-        std::cout << "Transitioning to collecting_data\n";
+        // std::cout << "Transitioning to collecting_data\n";
         current_state_ = collecting_data_;
     }
 };

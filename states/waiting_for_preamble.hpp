@@ -31,6 +31,7 @@ class WaitingForPreambleState final : public TemplateState
     {
         if (start_of_packet(bit) && within_threshold())
         {
+            // printf("Preamble detected after receiving %d ones\n", ones_received_);
             move_to_next_state_ = true;
             ones_received_ = 0;
         }
@@ -44,7 +45,7 @@ class WaitingForPreambleState final : public TemplateState
             ones_received_++;
             move_to_next_state_ = false;
         }
-        std::cout << "Ones = " << ones_received_ << "\tmove_to_next = " << move_to_next_state_ << "\n";
+        // std::cout << "Ones = " << ones_received_ << "\tmove_to_next = " << move_to_next_state_ << "\n";
     }
 
     void reset_self() override
